@@ -301,21 +301,39 @@ News_Credibility/
 
 ```bash
 # 1. Clone the repository
-git clone <your-repo-url>
-cd <project-folder>
+git clone https://github.com/dodiyariya6/News-Credibility-Analyser.git
 
-# 2. Create and activate a virtual environment (recommended)
+# 2. Navigate to the project directory
+cd News-Credibility-Analyser
+
+# 3. Create a virtual environment
 python -m venv venv
-source venv/bin/activate      # Windows: venv\Scripts\activate
 
-# 3. Install dependencies
+# 4. Activate the virtual environment
+
+# Windows
+venv\Scripts\activate
+
+# Linux / macOS
+source venv/bin/activate
+
+# 5. Install dependencies
 pip install -r requirements.txt
 
-# 4. Run the app
+# 6. Launch the application
 streamlit run app/app.py
 ```
 
-NLTK resources (`punkt`, `stopwords`, `wordnet`) download automatically on first run — needs internet the first time only.
+### Requirements
+
+- Python 3.11+
+- Internet connection on first run (required for NLTK resource download)
+
+The application automatically downloads the required NLTK resources:
+
+- punkt
+- stopwords
+- wordnet
 
 ---
 
