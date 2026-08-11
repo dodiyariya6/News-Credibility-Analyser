@@ -10,6 +10,7 @@ from config import (
     DISCLAIMER, DATASET_CREDIT,
     TIER_HIGH, TIER_MODERATE, TIER_UNCERTAIN,
     MIN_BODY_WORDS,
+    SAMPLE_FAKE_ARTICLE, SAMPLE_CREDIBLE_ARTICLE,
     DATA_SOURCES, NOTEBOOKS,
 )
 from utils import get_history, clear_history, highlight_text, generate_report
@@ -38,14 +39,47 @@ def render_top_nav() -> None:
     """)
 
 
-def render_sample_buttons() -> tuple[bool, bool]:
+def _load_sample_article(article: dict) -> None:
+    """
+    on_click callback for the sample buttons.
+
+    Callbacks run *before* the next script rerun — i.e. before input_title/
+    input_body's widgets are re-instantiated — so writing to their
+    session_state here is always safe. Doing this same assignment inline in
+    the script body (after the widgets have already rendered for this run)
+    is the classic Streamlit footgun: the widget has already claimed its
+    value for this pass, so the new text wouldn't appear until an extra,
+    easy-to-get-wrong manual st.rerun(). A callback sidesteps the ordering
+    question entirely, which is also why the Clear button below uses one.
+    """
+    st.session_state["input_title"] = article["title"]
+    st.session_state["input_body"] = article["body"]
+
+
+def render_sample_buttons() -> None:
     """Renders the 'Try fake sample' / 'Try credible sample' buttons."""
     col1, col2 = st.columns(2, gap="medium")
     with col1:
-        fake_clicked = st.button("Try a Fake-style Sample", use_container_width=True)
+        st.button(
+            "Try a Fake-style Sample",
+            use_container_width=True,
+            on_click=_load_sample_article,
+            args=(SAMPLE_FAKE_ARTICLE,),
+        )
     with col2:
-        credible_clicked = st.button("Try a Credible-style Sample", use_container_width=True)
-    return fake_clicked, credible_clicked
+        st.button(
+            "Try a Credible-style Sample",
+            use_container_width=True,
+            on_click=_load_sample_article,
+            args=(SAMPLE_CREDIBLE_ARTICLE,),
+        )
+
+
+def _clear_inputs() -> None:
+    """on_click callback for the Clear button — see _load_sample_article for why
+    this runs as a callback rather than a post-hoc `if cleared: ...` check."""
+    st.session_state.pop("input_title", None)
+    st.session_state.pop("input_body", None)
 
 
 def render_input_form() -> tuple[str, str, bool]:
@@ -73,6 +107,15 @@ def render_input_form() -> tuple[str, str, bool]:
         key="input_body",
     )
 
+    # Live word-count feedback — informational only, does not block submission
+    # (validate_inputs() still owns the actual soft-warning rule).
+    word_count = len(body.split())
+    if body:
+        note = f"{word_count} word{'s' if word_count != 1 else ''}"
+        if word_count < MIN_BODY_WORDS:
+            note += f" · {MIN_BODY_WORDS - word_count} more recommended for a reliable result"
+        st.caption(note)
+
     col_btn, col_clear = st.columns([3, 1])
 
     with col_btn:
@@ -83,16 +126,11 @@ def render_input_form() -> tuple[str, str, bool]:
         )
 
     with col_clear:
-        cleared = st.button(
+        st.button(
             "Clear",
-            use_container_width=True
+            use_container_width=True,
+            on_click=_clear_inputs,
         )
-
-    # Clear inputs safely
-    if cleared:
-        st.session_state.pop("input_title", None)
-        st.session_state.pop("input_body", None)
-        st.rerun()
 
     return title.strip(), body.strip(), submitted
 
@@ -196,6 +234,14 @@ def render_results(result: dict) -> None:
                 <div class="prob-value credible-prob">{credible_prob * 100:.1f}%</div>
             </div>
         """)
+
+    # Shown for every result, not just Uncertain ones — the model reasons over
+    # writing style and word choice, not facts, and that should never be
+    # ambiguous regardless of how confident the verdict looks.
+    st.caption(
+        "Based on writing-style and wording patterns learned from training data — "
+        "not independent fact verification."
+    )
 
     if tier == TIER_UNCERTAIN:
         render_html("""

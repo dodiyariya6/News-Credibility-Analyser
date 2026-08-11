@@ -12,3 +12,7 @@ Thumbs.db
 .env
 
 data/processed/
+
+.claude
+
+.streamlit/

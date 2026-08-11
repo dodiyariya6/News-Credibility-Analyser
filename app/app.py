@@ -18,6 +18,7 @@ import pandas as pd
 # Must be the very first Streamlit call.
 st.set_page_config(
     page_title="News Credibility Analyser",
+    page_icon="📰",
     layout="centered",
     initial_sidebar_state="collapsed",
 )
@@ -43,8 +44,8 @@ from components import (
 from utils import predict, get_top_terms, add_to_history
 from config import (
     HERO_HEADLINE_MAIN, HERO_HEADLINE_ITALIC, HERO_SUBTEXT,
-    HOME_STATS, HOME_FEATURES, DATASET_STATS, SELECTED_MODEL_NAME,
-    SAMPLE_FAKE_ARTICLE, SAMPLE_CREDIBLE_ARTICLE,
+    HOME_STATS, HOME_FEATURES, HOME_HOW_IT_WORKS,
+    DATASET_STATS, SELECTED_MODEL_NAME,
     MODEL_METRICS, MODEL_SELECTION_RATIONALE,
     ASSET_CONFUSION_MATRICES, ASSET_FEATURE_IMPORTANCE, ASSET_ROC_CURVES,
     PIPELINE_STEPS, TECH_STACK, FOLDER_STRUCTURE,
@@ -65,6 +66,13 @@ def render_home() -> None:
             <p class="header-description" style="max-width:640px;">{HERO_SUBTEXT}</p>
         </div>
     """)
+
+    steps_html = "".join(
+        f'<span class="how-step"><strong>{i+1}. {s["title"]}</strong> {s["detail"]}</span>'
+        + ('<span class="how-arrow">→</span>' if i < len(HOME_HOW_IT_WORKS) - 1 else '')
+        for i, s in enumerate(HOME_HOW_IT_WORKS)
+    )
+    render_html(f'<div class="how-it-works fade-in">{steps_html}</div>')
 
     stat_html = "".join(
         f'<div class="stat-item"><div class="stat-value">{s["value"]}</div>'
@@ -112,15 +120,7 @@ def render_analyse() -> None:
         </div>
     """)
 
-    fake_clicked, credible_clicked = render_sample_buttons()
-    if fake_clicked:
-        st.session_state["input_title"] = SAMPLE_FAKE_ARTICLE["title"]
-        st.session_state["input_body"] = SAMPLE_FAKE_ARTICLE["body"]
-        st.rerun()
-    if credible_clicked:
-        st.session_state["input_title"] = SAMPLE_CREDIBLE_ARTICLE["title"]
-        st.session_state["input_body"] = SAMPLE_CREDIBLE_ARTICLE["body"]
-        st.rerun()
+    render_sample_buttons()
 
     render_html("<div style='height:0.5rem'></div>")
 
