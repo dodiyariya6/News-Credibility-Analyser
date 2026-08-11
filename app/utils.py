@@ -1,6 +1,8 @@
 """
-utils.py — Preprocessing, model loading, and prediction logic.
+utils.py — Model loading, prediction, and explainability logic.
 All ML-related operations live here, separate from the UI layer.
+Text preprocessing itself (clean_text) lives in text_processing.py, shared
+with the training notebook — see that module's docstring for why.
 """
 
 import re
@@ -8,10 +10,7 @@ import string
 import joblib
 import streamlit as st
 
-import nltk
-from nltk.corpus import stopwords
-from nltk.stem import WordNetLemmatizer
-from nltk.tokenize import word_tokenize
+from text_processing import clean_text, lemmatizer as _lemmatizer
 
 from config import (
     MODEL_PATH, VECTORIZER_PATH,
@@ -20,63 +19,8 @@ from config import (
     TIER_HIGH, TIER_MODERATE, TIER_UNCERTAIN,
 )
 
-
-def _ensure_nltk_resources() -> None:
-    """Downloads required NLTK data only if it isn't already present."""
-    resources = [
-        ("tokenizers/punkt",     "punkt"),
-        ("tokenizers/punkt_tab", "punkt_tab"),
-        ("corpora/stopwords",    "stopwords"),
-        ("corpora/wordnet",      "wordnet"),
-    ]
-    for path, pkg in resources:
-        try:
-            nltk.data.find(path)
-        except LookupError:
-            nltk.download(pkg, quiet=True)
-
-_ensure_nltk_resources()
-
-_STOP_WORDS = set(stopwords.words("english"))
-
-# Negations carry meaning for this task — keep them during stopword removal.
-_NEGATIONS = {"not", "no", "never", "without", "neither", "nor"}
-_FILTERED_STOPS = _STOP_WORDS - _NEGATIONS
-
-_lemmatizer = WordNetLemmatizer()
-
-
-def clean_text(text: str) -> str:
-    """
-    Replicates the exact preprocessing pipeline used at training time
-    (01_eda_preprocessing.ipynb). Step order must stay identical to training
-    to avoid a feature mismatch at inference.
-
-    Steps: lowercase -> strip Reuters dateline leak -> strip URLs -> strip HTML ->
-    replace digits -> remove punctuation -> tokenise -> remove stopwords
-    (keep negations) -> lemmatise.
-    """
-    text = text.lower()
-
-    # Strip Reuters wire-service dateline leak (e.g. "washington (reuters) -").
-    # Nearly all True.csv articles open with this; Fake.csv almost never
-    # contains it, so left in, "reuters" becomes a near-perfect label proxy
-    # instead of the model learning genuine credibility signals. Must match
-    # the identical fix applied in 02_feature_model.ipynb's clean_text(), or
-    # inference will diverge from what the model was actually trained on.
-    text = re.sub(r"^.*?\(reuters\)\s*-\s*", "", text)
-    text = re.sub(r"\breuters\b", "", text)
-
-    text = re.sub(r"http\S+|www\.\S+", " ", text)
-    text = re.sub(r"<[^>]+>", " ", text)
-    text = re.sub(r"\d+", " NUM ", text)
-    text = text.translate(str.maketrans("", "", string.punctuation))
-
-    tokens = word_tokenize(text)
-    tokens = [t for t in tokens if t not in _FILTERED_STOPS]
-    tokens = [_lemmatizer.lemmatize(t) for t in tokens]
-
-    return " ".join(tokens)
+# clean_text() is imported (not redefined here) so app inference always uses
+# the exact same preprocessing as training — see text_processing.py.
 
 
 @st.cache_resource(show_spinner=False)

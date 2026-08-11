@@ -1,6 +1,15 @@
 streamlit>=1.35.0
-scikit-learn>=1.4.0
+
+# Pinned exactly to reproduce the environment models/model.pkl and
+# models/vectorizer.pkl were trained with (scikit-learn 1.6.1 — confirmed via
+# the InconsistentVersionWarning emitted when loading them with a newer
+# version). joblib/numpy/scipy are pinned to versions verified locally to
+# satisfy scikit-learn 1.6.1's own requirements (numpy>=1.19.5, scipy>=1.6.0,
+# joblib>=1.2.0) and to load + predict with these exact artifacts warning-free.
+scikit-learn==1.6.1
+joblib==1.5.3
+numpy==2.4.6
+scipy==1.17.1
+
 nltk>=3.8.1
-joblib>=1.3.2
-numpy>=1.26.0
 pandas>=2.2.0
