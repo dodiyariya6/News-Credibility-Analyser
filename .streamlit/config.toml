@@ -1,0 +1,26 @@
+# UI-only configuration for the deployed app. No effect on the ML pipeline.
+#
+# toolbarMode = "minimal" hides Streamlit's default "Deploy" call-to-action
+# and hamburger menu — chrome that's meaningful when developing an app in
+# Streamlit Community Cloud, but reads as an unfinished template on a
+# portfolio project meant to be viewed, not deployed from.
+[client]
+toolbarMode = "minimal"
+
+# Without this, Streamlit auto-detects the viewer's OS/browser dark-mode
+# preference and swaps its own native theme to dark — which our custom CSS
+# in styles.py only partially overrides (some native widgets, e.g. the
+# st.dataframe table on Model Insights, are canvas-rendered and can't be
+# reached by CSS at all). That mismatch — our CSS assuming a light page
+# while Streamlit's native chrome quietly goes dark underneath it — is what
+# caused headings/buttons/alerts to render as invisible or low-contrast for
+# viewers whose browser prefers dark mode. Pinning every value here to the
+# exact tokens already used in styles.py's :root keeps native widgets and
+# custom HTML visually identical regardless of the viewer's OS setting.
+[theme]
+base = "light"
+primaryColor = "#4F9C8A"
+backgroundColor = "#FAF8F4"
+secondaryBackgroundColor = "#F3EFE6"
+textColor = "#1F2937"
+font = "sans serif"
