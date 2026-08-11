@@ -159,7 +159,7 @@ header[data-testid="stHeader"] {
 }
 .header-title .accent {
     font-weight: 800;
-    color: var(--accent);
+    color: var(--accent) !important;
     display: block;
 }
 .header-subtitle {
@@ -175,6 +175,24 @@ header[data-testid="stHeader"] {
     line-height: 1.7;
 }
 .header-block.centered .header-description { margin: 0 auto; }
+
+/* ── How It Works Strip (Home) ─────────────────────────────────────────────
+   Answers "what do I paste in / what do I get out" before the user ever
+   leaves the Home tab — a single restrained line, not a new card system. ── */
+.how-it-works {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    align-items: baseline;
+    gap: 0.5rem 0.9rem;
+    max-width: 760px;
+    margin: 0.9rem auto 0;
+    font-size: 0.92rem;
+    color: var(--ink-muted);
+    text-align: center;
+}
+.how-step strong { color: var(--ink); font-weight: 700; }
+.how-arrow { color: var(--accent); font-weight: 600; }
 
 /* ── Section Labels ────────────────────────────────────────────────────── */
 .section-label {
@@ -733,6 +751,30 @@ div[data-testid="stButton"] > button:not([kind="primary"]):hover {
     background: var(--card-hover) !important;
 }
 
+/* st.download_button renders under a *different* testid (stDownloadButton,
+   not stButton) so none of the button rules above ever applied to it — it
+   was falling all the way through to Streamlit's native theme button
+   styling, which is what produced dark-on-dark, disabled-looking text.
+   Styled identically to the secondary (non-primary) button above for
+   consistency. */
+div[data-testid="stDownloadButton"] > button {
+    border-radius: 4px !important;
+    font-weight: 600 !important;
+    border: 1.5px solid var(--border-strong) !important;
+    color: var(--ink) !important;
+    background: var(--card) !important;
+    transition: border-color 0.2s ease, color 0.2s ease, background 0.2s ease;
+}
+div[data-testid="stDownloadButton"] > button:hover {
+    border-color: var(--accent) !important;
+    color: var(--accent-hover) !important;
+    background: var(--card-hover) !important;
+}
+div[data-testid="stDownloadButton"] > button:focus-visible {
+    outline: none !important;
+    box-shadow: 0 0 0 3px var(--accent-soft-border) !important;
+}
+
 div[data-testid="stProgress"] > div > div > div {
     background: var(--accent) !important;
     border-radius: 999px !important;
@@ -786,11 +828,18 @@ div[data-testid="stDataFrame"] {
     overflow: hidden;
 }
 
+/* st.error/st.warning/st.info previously set background/border only, never
+   text color — leaving the message text itself to Streamlit's native theme
+   color, invisible against --surface-alt under a dark-theme flip. */
 div[data-testid="stAlert"] {
     border-radius: 4px !important;
     font-weight: 500;
     background: var(--surface-alt) !important;
     border: 1px solid var(--border-strong) !important;
+    color: var(--ink-body) !important;
+}
+div[data-testid="stAlert"] p {
+    color: var(--ink-body) !important;
 }
 
 div[data-testid="stMetric"] {
@@ -813,19 +862,43 @@ hr { margin: 1.5rem 0 !important; border-color: var(--border-strong) !important;
     color: var(--ink-muted) !important;
 }
 
+/* !important here because [data-testid="stMarkdownContainer"] h1 etc. can
+   otherwise lose the color fight to Streamlit's own theme CSS for the same
+   selector — this was the root cause of the invisible/low-contrast
+   headings and body text reported on the Home page (see also the [theme]
+   block in .streamlit/config.toml, which fixes this at the source instead
+   of relying on !important everywhere). Every level is covered, not just
+   the ones a given page happens to use today, so a future h2/h5/h6 doesn't
+   silently reintroduce the same bug. */
 div[data-testid="stMarkdownContainer"] p,
 div[data-testid="stMarkdownContainer"] li {
-    color: var(--ink-body);
+    color: var(--ink-body) !important;
 }
 div[data-testid="stMarkdownContainer"] strong {
-    color: var(--ink);
+    color: var(--ink) !important;
 }
+div[data-testid="stMarkdownContainer"] h1,
+div[data-testid="stMarkdownContainer"] h2,
 div[data-testid="stMarkdownContainer"] h3,
-div[data-testid="stMarkdownContainer"] h4 {
+div[data-testid="stMarkdownContainer"] h4,
+div[data-testid="stMarkdownContainer"] h5,
+div[data-testid="stMarkdownContainer"] h6 {
     color: var(--ink) !important;
 }
 div[data-testid="stMarkdownContainer"] table {
-    color: var(--ink-body);
+    color: var(--ink-body) !important;
+}
+
+/* ── Suppress Streamlit chrome for a cleaner, portfolio-branded page ──────
+   Streamlit auto-injects a copy-link icon next to every <h1>-<h6> it finds
+   in markdown output — including raw HTML headers rendered here via
+   unsafe_allow_html — which shows up as a stray floating link glyph next to
+   every custom header-title/section-label. It's not part of this design and
+   has no useful destination (there's no in-page anchor to jump to), so it's
+   hidden rather than left as visual noise. */
+h1 a, h2 a, h3 a, h4 a, h5 a, h6 a,
+[data-testid="stHeaderActionElements"] {
+    display: none !important;
 }
 
 </style>

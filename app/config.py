@@ -155,6 +155,15 @@ HOME_STATS = [
     {"value": "30k", "label": "TF-IDF Features"},
 ]
 
+# Compact "how it works" strip shown right under the hero on the Home page —
+# answers what-to-input / what-you-get before the user ever reaches the
+# Analyse tab.
+HOME_HOW_IT_WORKS = [
+    {"title": "Paste", "detail": "a headline and article body"},
+    {"title": "Model analyses", "detail": "it instantly using TF-IDF + Logistic Regression"},
+    {"title": "Get", "detail": "a verdict, confidence score, and the terms behind it"},
+]
+
 # Feature cards shown under "What This App Does" on the Home page
 HOME_FEATURES = [
     {
