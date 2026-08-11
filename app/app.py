@@ -231,10 +231,12 @@ def render_charts() -> None:
     render_html('<div class="section-label">ROC Curve Comparison</div>')
     if os.path.exists(ASSET_ROC_CURVES):
         st.image(ASSET_ROC_CURVES, use_container_width=True)
-    st.caption(
-        "Logistic Regression AUC = 0.9993 · Multinomial NB AUC = 0.9920 · "
-        "Random Forest AUC = 0.9997"
+    # Pulled from MODEL_METRICS (not hardcoded) so this caption can never drift
+    # out of sync with the numbers in the comparison table above it.
+    auc_caption = " · ".join(
+        f"{name} AUC = {m['roc_auc']:.4f}" for name, m in MODEL_METRICS.items()
     )
+    st.caption(auc_caption)
 
     st.markdown("---")
     render_html('<div class="section-label">Feature Importance — Logistic Regression</div>')
@@ -243,8 +245,10 @@ def render_charts() -> None:
     st.caption(
         "Top 20 coefficients per class, taken directly from the trained model. "
         "Positive coefficients push toward Fake, negative toward Credible — note how "
-        "source-attribution language ('reuters', 'said', 'washington reuters') strongly "
-        "signals Credible, while engagement-bait terms ('video', 'via', 'image') signal Fake."
+        "attribution language ('said', weekday names from Reuters datelines) strongly "
+        "signals Credible, while engagement-bait terms ('video', 'via', 'image') signal Fake. "
+        "'reuters' itself is stripped before training (see Known Limitations), so it no "
+        "longer appears here."
     )
 
 

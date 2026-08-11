@@ -171,7 +171,7 @@ Python · Streamlit · scikit-learn · NLTK · pandas · NumPy · TF-IDF · Logi
 | 2    | `02_feature_model.ipynb`     | Text cleaning → TF-IDF vectorisation (unigrams + bigrams, 30,000 features) → train/compare Logistic Regression, Multinomial Naive Bayes, Random Forest → save `model.pkl` + `vectorizer.pkl` |
 | 3    | `03_evaluation.ipynb`        | Load the saved model/vectorizer → confusion matrices, ROC curves, feature importance, final metrics table                                                                                    |
 
-**Model selection rule:** pick the simplest model within 1% F1 of the best performer. Random Forest scored marginally higher, but Logistic Regression was chosen for interpretability (coefficients directly explain every prediction) and ~30x faster training.
+**Model selection rule:** pick the simplest model within 1% F1 of the best performer. In practice, Logistic Regression had the highest Test F1 outright (98.63% vs. 97.46% for Random Forest and 95.72% for Multinomial NB), so it won on performance alone — and it also trains ~80x faster than Random Forest (0.79s vs. 64.27s) with coefficients that directly explain every prediction.
 
 ## Final Results
 
@@ -239,7 +239,7 @@ This model has a documented dataset-leakage issue, found and partially fixed dur
 1. The literal word **"reuters"** — nearly every credible article's dateline (`WASHINGTON (Reuters) -`) made this a near-perfect label proxy.
 2. **Photo-caption artifacts ("via", "image")** — Fake.csv articles were scraped with embedded photo credits (e.g. `Image via Getty`) that Reuters text never has; at one point these were the two largest coefficients in the entire model.
 
-**Fix →** Both patterns are stripped in `clean_text()`, applied identically in `02_feature_model.ipynb` (training) and `app/utils.py` (inference) — these two must always stay in sync.
+**Fix →** Both patterns are stripped in `clean_text()`, defined once in `app/text_processing.py` and imported by both `02_feature_model.ipynb` (training) and `app/utils.py` (inference), so the two can't drift out of sync with each other.
 
 **Impact →** There's likely a structural ceiling here: because the Credible class is essentially Reuters-only, some residual house-style signal (`said`, `minister`, `government`) will always leak through TF-IDF regardless of blocklisting — a genuinely complete fix needs a dataset with credible articles from multiple outlets, which is outside this project's scope. Practically, this means the model generalises worse to non-Reuters credible sources than test accuracy suggests, and is trained/evaluated only on English-language political news.
 
@@ -267,7 +267,8 @@ News_Credibility/
 │   ├── components.py             # Reusable UI components
 │   ├── config.py                 # Constants and metrics
 │   ├── styles.py                 # Custom styling
-│   └── utils.py                  # Preprocessing and prediction pipeline
+│   ├── text_processing.py        # Shared clean_text() — imported by utils.py AND 02_feature_model.ipynb
+│   └── utils.py                  # Model loading and prediction pipeline
 │
 ├── assets/                       # Evaluation visualisations
 │   ├── confusion_matrices.png
@@ -345,7 +346,7 @@ The application automatically downloads the required NLTK resources:
 4. Copy the new `.pkl` files into `models/` and new `.png` charts into `assets/`.
 5. Update the metrics in this README and in `config.py`'s `MODEL_METRICS` / `DATASET_STATS`.
 
-**Important:** `clean_text()` exists in two places — `02_feature_model.ipynb` and `app/utils.py`. Keep them identical, or the app's predictions will be based on a different feature space than the model was trained on.
+**Important:** `clean_text()` lives in one place — `app/text_processing.py` — and is imported by both `02_feature_model.ipynb` and `app/utils.py`, so training and inference always share the exact same preprocessing. Don't reintroduce a second copy; if the pipeline needs to change, change it there.
 
 ---
 

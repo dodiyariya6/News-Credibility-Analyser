@@ -51,57 +51,57 @@ DATASET_STATS = {
     "total_articles": 38639,
     "credible_count": 21191,
     "fake_count": 17448,
-    "train_size": 30915,
-    "test_size": 7729,
+    "train_size": 30911,
+    "test_size": 7728,
     "vocab_size": 30000,
 }
 
 MODEL_METRICS = {
     "Logistic Regression": {
-        "accuracy": 0.9904,
-        "precision": 0.9908,
-        "recall": 0.9899,
-        "f1": 0.9903,
-        "roc_auc": 0.9993,
-        "cv_f1_mean": 0.9895,
-        "cv_f1_std": 0.0013,
-        "train_time_s": 1.50,
-        "confusion_matrix": {"tn": 4218, "fp": 20, "fn": 54, "tp": 3436},
+        "accuracy": 0.9864,
+        "precision": 0.9869,
+        "recall": 0.9857,
+        "f1": 0.9863,
+        "roc_auc": 0.9986,
+        "cv_f1_mean": 0.9853,
+        "cv_f1_std": 0.0010,
+        "train_time_s": 0.79,
+        "confusion_matrix": {"tn": 4209, "fp": 29, "fn": 76, "tp": 3414},
         "selected": True,
     },
     "Multinomial NB": {
-        "accuracy": 0.9611,
-        "precision": 0.9606,
-        "recall": 0.9608,
-        "f1": 0.9607,
-        "roc_auc": 0.9920,
-        "cv_f1_mean": 0.9615,
-        "cv_f1_std": 0.0020,
-        "train_time_s": 0.19,
-        "confusion_matrix": {"tn": 4083, "fp": 155, "fn": 146, "tp": 3344},
+        "accuracy": 0.9576,
+        "precision": 0.9570,
+        "recall": 0.9574,
+        "f1": 0.9572,
+        "roc_auc": 0.9905,
+        "cv_f1_mean": 0.9577,
+        "cv_f1_std": 0.0022,
+        "train_time_s": 0.04,
+        "confusion_matrix": {"tn": 4064, "fp": 174, "fn": 154, "tp": 3336},
         "selected": False,
     },
     "Random Forest": {
-        "accuracy": 0.9942,
-        "precision": 0.9944,
-        "recall": 0.9939,
-        "f1": 0.9941,
-        "roc_auc": 0.9997,
-        "cv_f1_mean": 0.9945,
-        "cv_f1_std": 0.0009,
-        "train_time_s": 48.79,
-        "confusion_matrix": {"tn": 4226, "fp": 12, "fn": 33, "tp": 3457},
+        "accuracy": 0.9749,
+        "precision": 0.9758,
+        "recall": 0.9736,
+        "f1": 0.9746,
+        "roc_auc": 0.9972,
+        "cv_f1_mean": 0.9755,
+        "cv_f1_std": 0.0013,
+        "train_time_s": 64.27,
+        "confusion_matrix": {"tn": 4183, "fp": 55, "fn": 139, "tp": 3351},
         "selected": False,
     },
 }
 
 SELECTED_MODEL_NAME = "Logistic Regression"
 MODEL_SELECTION_RATIONALE = (
-    "Random Forest scored marginally higher on Test F1 (99.41% vs 99.03%), but the "
-    "difference is within a 1% threshold. Given the project's selection rule — pick "
-    "the simplest model within 1% of the top F1 score — Logistic Regression was "
-    "chosen for its interpretability, ~30x faster training time (1.50s vs 48.79s), "
-    "and coefficients that directly explain each prediction."
+    "Logistic Regression had the highest Test F1 of the three (98.63%, vs. 97.46% "
+    "for Random Forest and 95.72% for Multinomial NB) — so no simplicity tie-break "
+    "was even needed. It also trains roughly 80x faster than Random Forest (0.79s "
+    "vs. 64.27s) and its coefficients directly explain each prediction, making it "
+    "the clear choice on both performance and interpretability."
 )
 
 # Static evaluation charts generated in 03_evaluation.ipynb — used as-is so
@@ -151,7 +151,7 @@ HERO_SUBTEXT = (
 HOME_STATS = [
     {"value": "38.6k+", "label": "Articles in Training Set"},
     {"value": "3", "label": "Models Compared"},
-    {"value": "99.04%", "label": "Final Model Accuracy"},
+    {"value": "98.64%", "label": "Final Model Accuracy"},
     {"value": "30k", "label": "TF-IDF Features"},
 ]
 
@@ -300,7 +300,8 @@ FOLDER_STRUCTURE = """project/
 │   ├── config.py                ← Constants, copy, real metrics
 │   ├── components.py            ← Reusable UI components
 │   ├── styles.py                ← Theme (CSS)
-│   └── utils.py                 ← Preprocessing + prediction pipeline
+│   ├── text_processing.py       ← Shared clean_text() (used by training notebook too)
+│   └── utils.py                 ← Model loading + prediction pipeline
 ├── data/
 │   ├── Fake.csv
 │   ├── True.csv

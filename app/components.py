@@ -3,13 +3,13 @@ components.py — Reusable Streamlit UI components.
 Each function renders one visual section. Pages in app.py call these in order.
 """
 
+import html
+
 import streamlit as st
 from config import (
-    APP_TITLE, APP_SUBTITLE, APP_DESCRIPTION, HERO_EYEBROW,
     DISCLAIMER, DATASET_CREDIT,
     TIER_HIGH, TIER_MODERATE, TIER_UNCERTAIN,
     MIN_BODY_WORDS,
-    SAMPLE_FAKE_ARTICLE, SAMPLE_CREDIBLE_ARTICLE,
     DATA_SOURCES, NOTEBOOKS,
 )
 from utils import get_history, clear_history, highlight_text, generate_report
@@ -34,17 +34,6 @@ def render_top_nav() -> None:
     render_html("""
         <div class="top-nav fade-in">
             <div class="top-nav-logo">news<span>credible</span></div>
-        </div>
-    """)
-
-
-def render_header() -> None:
-    render_html(f"""
-        <div class="header-block fade-in">
-            <div class="eyebrow-badge">{HERO_EYEBROW}</div>
-            <h1 class="header-title">{APP_TITLE}</h1>
-            <p class="header-subtitle">{APP_SUBTITLE}</p>
-            <p class="header-description">{APP_DESCRIPTION}</p>
         </div>
     """)
 
@@ -336,10 +325,15 @@ def render_history() -> None:
     for entry in history:
         badge_color = "var(--danger)" if entry["is_fake"] else "var(--credible)"
         badge_bg    = "var(--danger-soft)" if entry["is_fake"] else "var(--credible-soft)"
+        # entry["title"] is raw user input (the article title the visitor
+        # typed) — it must be HTML-escaped before going into unsafe_allow_html
+        # markup, or a pasted title like "<img src=x onerror=...>" would
+        # execute as live HTML/JS instead of rendering as text.
+        safe_title = html.escape(entry["title"])
         render_html(f"""
             <div class="history-item fade-in">
                 <div>
-                    <div class="history-title">{entry['title']}</div>
+                    <div class="history-title">{safe_title}</div>
                     <div class="history-meta">{entry['timestamp']}</div>
                 </div>
                 <div class="history-badge" style="background:{badge_bg}; color:{badge_color};">
